@@ -37,9 +37,9 @@ class LinearClassifier(object):
     # Run stochastic gradient descent to optimize W
     loss_history = []
     for it in range(num_iters):
-      X_batch = None
-      y_batch = None
-
+      random_ind = np.random.choice(num_train, batch_size, replace=True)
+      X_batch = X[random_ind, :]
+      y_batch = y[random_ind]
       #########################################################################
       # TODO:                                                                 #
       # Sample batch_size elements from the training data and their           #
@@ -60,7 +60,7 @@ class LinearClassifier(object):
       loss, grad = self.loss(X_batch, y_batch, reg)
       loss_history.append(loss)
 
-      # perform parameter update
+      self.W -= learning_rate * grad
       #########################################################################
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
