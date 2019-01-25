@@ -22,7 +22,23 @@ def softmax_loss_naive(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
+  n_train, dim = X.shape
+  num_train = X.shape[0]
+  num_classes = W.shape[1]
+  for i in range(num_train):
+    f = X[i].dot(W)
+    f -= np.max(f)
+    sums = np.sum(np.exp(f))
+    loss += -f[y[i]] + np.log(sums)
+    for j in range(num_classes):
+        if j == y[i]:
+            dW[:, j] += (np.exp(f[j]) / sums - 1) * X[i]
+        else:
+            dW[:, j] += (np.exp(f[j]) / sums) * X[i]
+  loss /= num_train
+  loss += reg * np.sum(W * W)
+  dW /= num_train
+  dW += 0.5 * reg * W
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using explicit loops.     #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -46,7 +62,19 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
+  n_train, dim = X.shape
+  classes = W.shape[1]
+  f = np.dot(X, W)
+  f -= np.max(f)
+  sums = np.sum(np.exp(f), axis=1)
+  loss = np.sum(-f[np.arange(n_train), y] + np.log(sums)) / n_train
+  
+  correct_class = np.zeros((n_train, classes))
+  correct_class[np.arange(n_train),y] = -1
+  dW = np.dot(X.T, (np.exp(f) / sums.reshape(-1, 1) + correct_class))
+  dW /= n_train
+  loss += reg * np.sum(W * W)
+  W = 0.5 * reg * W
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
