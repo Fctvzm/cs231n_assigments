@@ -67,9 +67,11 @@ class TwoLayerNet(object):
     W1, b1 = self.params['W1'], self.params['b1']
     W2, b2 = self.params['W2'], self.params['b2']
     N, D = X.shape
+    
 
     # Compute the forward pass
-    scores = None
+    layer1 = np.maximum(0, np.dot(X, W1) + b1)
+    scores = np.dot(layer1, W2) + b2
     #############################################################################
     # TODO: Perform the forward pass, computing the class scores for the input. #
     # Store the result in the scores variable, which should be an array of      #
@@ -85,7 +87,12 @@ class TwoLayerNet(object):
       return scores
 
     # Compute the loss
-    loss = None
+    scores -= np.max(scores)
+    sums = np.sum(np.exp(scores), axis=1)
+    fy = scores[np.arange(N), y]
+    loss = np.sum(-fy + np.log(sums))
+    loss /= N
+    loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
     #############################################################################
     # TODO: Finish the forward pass, and compute the loss. This should include  #
     # both the data loss and L2 regularization for W1 and W2. Store the result  #
@@ -99,6 +106,23 @@ class TwoLayerNet(object):
 
     # Backward pass: compute gradients
     grads = {}
+    correct_class = np.zeros((N, scores.shape[1]))
+    correct_class[np.arange(N), y] = -1
+    exp = np.exp(scores)
+    s = (exp / sums.reshape(-1, 1) + correct_class) / N
+    #db2 = np.dot(np.ones((1, N)), s)
+    db2 = np.sum(s, axis=0)
+    dW2 = np.dot(layer1.T, s)
+    dH1 = np.dot(s, W2.T)
+    dH1[layer1 == 0] = 0
+    dW1 = np.dot(X.T, dH1)
+    #db1 = np.dot(np.ones((1, N)), dH1)
+    db1 = np.sum(dH1, axis=0)
+    
+    grads['W2'] = dW2 + 2 * reg * W2
+    grads['b2'] = db2
+    grads['W1'] = dW1 + 2 * reg * W1
+    grads['b1'] = db1
     #############################################################################
     # TODO: Compute the backward pass, computing the derivatives of the weights #
     # and biases. Store the results in the grads dictionary. For example,       #
@@ -141,8 +165,9 @@ class TwoLayerNet(object):
     val_acc_history = []
 
     for it in range(num_iters):
-      X_batch = None
-      y_batch = None
+      random_ind = np.random.choice(num_train, batch_size, replace=True)
+      X_batch = X[random_ind, :]
+      y_batch = y[random_ind]
 
       #########################################################################
       # TODO: Create a random minibatch of training data and labels, storing  #
@@ -156,7 +181,11 @@ class TwoLayerNet(object):
       # Compute loss and gradients using the current minibatch
       loss, grads = self.loss(X_batch, y=y_batch, reg=reg)
       loss_history.append(loss)
-
+        
+      self.params['W1'] -= learning_rate * grads['W1']
+      self.params['b1'] -= learning_rate * grads['b1']
+      self.params['W2'] -= learning_rate * grads['W2']
+      self.params['b2'] -= learning_rate * grads['b2']
       #########################################################################
       # TODO: Use the gradients in the grads dictionary to update the         #
       # parameters of the network (stored in the dictionary self.params)      #
@@ -203,8 +232,9 @@ class TwoLayerNet(object):
       the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
       to have class c, where 0 <= c < C.
     """
-    y_pred = None
-
+    layer1 = np.maximum(0, np.dot(X, self.params['W1']) + self.params['b1'])
+    scores = np.dot(layer1, self.params['W2']) + self.params['b2']
+    y_pred = np.argmax(scores, axis = 1)
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
