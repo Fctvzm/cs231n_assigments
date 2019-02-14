@@ -261,15 +261,27 @@ class FullyConnectedNet(object):
                 fc_out, fc_cache = affine_forward(input, self.params['W'+str(i)], self.params['b'+str(i)])
                 bn_out, bn_cache = batchnorm_forward(fc_out, self.params['gamma'+str(i)], self.params['beta'+str(i)], self.bn_params[i-1])
                 input, relu_cache = relu_forward(bn_out)
-                caches.append((fc_cache, bn_cache, relu_cache))
+                if self.use_dropout:
+                    input, drop_cache = dropout_forward(input, self.dropout_param)
+                    caches.append((fc_cache, bn_cache, relu_cache, drop_cache))
+                else:
+                    caches.append((fc_cache, bn_cache, relu_cache))
             elif self.normalization == 'layernorm':
                 fc_out, fc_cache = affine_forward(input, self.params['W'+str(i)], self.params['b'+str(i)])
                 bn_out, bn_cache = layernorm_forward(fc_out, self.params['gamma'+str(i)], self.params['beta'+str(i)], self.bn_params[i-1])
                 input, relu_cache = relu_forward(bn_out)
-                caches.append((fc_cache, bn_cache, relu_cache))
+                if self.use_dropout:
+                    input, drop_cache = dropout_forward(input, self.dropout_param)
+                    caches.append((fc_cache, bn_cache, relu_cache, drop_cache))
+                else:
+                    caches.append((fc_cache, bn_cache, relu_cache))
             else:
                 input, cache = affine_relu_forward(input, self.params['W'+str(i)], self.params['b'+str(i)])
-                caches.append(cache)
+                if self.use_dropout:
+                    input, drop_cache = dropout_forward(input, self.dropout_param)
+                    caches.append((cache, drop_cache))
+                else:
+                    caches.append(cache)
         scores, cache = affine_forward(input, self.params['W'+str(n)], self.params['b'+str(n)])
         caches.append(cache)
         ############################################################################
@@ -303,20 +315,34 @@ class FullyConnectedNet(object):
         
         dout, grads['W'+str(n)], grads['b'+str(n)] = affine_backward(dout, caches[n-1])
         grads['W'+str(n)] += self.reg * self.params['W'+str(n)]
+        fc_cache, bn_cache, relu_cache, cache = None, None, None, None
         
         for i in range(n-1, 0, -1):
             if self.normalization == 'batchnorm':
-                fc_cache, bn_cache, relu_cache = caches[i-1]
+                if self.use_dropout:
+                    fc_cache, bn_cache, relu_cache, drop_cache = caches[i-1]
+                    dout = dropout_backward(dout, drop_cache)
+                else:
+                    fc_cache, bn_cache, relu_cache = caches[i-1]
                 dbn_out = relu_backward(dout, relu_cache)
                 dfc_out, grads['gamma'+str(i)], grads['beta'+str(i)] = batchnorm_backward(dbn_out, bn_cache)
                 dout, grads['W'+str(i)], grads['b'+str(i)] = affine_backward(dfc_out, fc_cache)
             elif self.normalization == 'layernorm':
-                fc_cache, bn_cache, relu_cache = caches[i-1]
+                if self.use_dropout:
+                    fc_cache, bn_cache, relu_cache, drop_cache = caches[i-1]
+                    dout = dropout_backward(dout, drop_cache)
+                else:
+                    fc_cache, bn_cache, relu_cache = caches[i-1]
                 dbn_out = relu_backward(dout, relu_cache)
                 dfc_out, grads['gamma'+str(i)], grads['beta'+str(i)] = layernorm_backward(dbn_out, bn_cache)
                 dout, grads['W'+str(i)], grads['b'+str(i)] = affine_backward(dfc_out, fc_cache)
             else:
-                dout, grads['W'+str(i)], grads['b'+str(i)] = affine_relu_backward(dout, caches[i-1])
+                if self.use_dropout:
+                    cache, drop_cache = caches[i-1]
+                    dout = dropout_backward(dout, drop_cache)
+                else:
+                    cache = caches[i-1]
+                dout, grads['W'+str(i)], grads['b'+str(i)] = affine_relu_backward(dout, cache)
             grads['W'+str(i)] += self.reg * self.params['W'+str(i)]
         ############################################################################
         #                             END OF YOUR CODE                             #
