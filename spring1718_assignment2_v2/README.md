@@ -19,11 +19,11 @@ are as follows:
 - gain experience with a major deep learning framework, such as **TensorFlow** or **PyTorch**.
 
 ## Setup
-Get the code as a zip file [here](http://cs231n.github.io/assignments/2018/spring1718_assignment2_v2.zip).
+Get the code as a zip file [here](http://cs231n.github.io/assignments/2018/spring1718_assignment2.zip).
 
 You can follow the setup instructions [here](http://cs231n.github.io/setup-instructions/).
 
-**NOTE: Our initial release of the assignment did not include the PyTorch and TensorFlow notebooks for Q5. These have now been finalized, and the zip file has been updated with these notebooks.**
+**NOTE: At this time, the PyTorch and TensorFlow notebooks for Question 5 are not finalized. We will update this page with a zip file containing the two notebooks and installation instructions as soon as they are completed.**
 
 ### Download data:
 Once you have the starter code, you will need to download the CIFAR-10 dataset.
@@ -62,14 +62,14 @@ The IPython notebook `Dropout.ipynb` will help you implement Dropout and explore
 its effects on model generalization.
 
 ### Q4: Convolutional Networks (30 points)
-In the IPython Notebook `ConvolutionalNetworks.ipynb` you will implement several new layers that are commonly used in convolutional networks.
+In the IPython Notebook ConvolutionalNetworks.ipynb you will implement several new layers that are commonly used in convolutional networks.
 
 ### Q5: PyTorch / TensorFlow on CIFAR-10 (10 points)
 For this last part, you will be working in either TensorFlow or PyTorch, two popular and powerful deep learning frameworks. **You only need to complete ONE of these two notebooks.** You do NOT need to do both, and we will _not_ be awarding extra credit to those who do. 
 
 Open up either `PyTorch.ipynb` or `TensorFlow.ipynb`. There, you will learn how the framework works, culminating in training a  convolutional network of your own design on CIFAR-10 to get the best performance you can.
 
-**NOTE**: The PyTorch notebook requires PyTorch version 0.4, which was released on 4/24/2018. You can install this version of PyTorch using conda or pip by following the instructions here: http://pytorch.org/
+**NOTE: Once again, at this time, the PyTorch and TensorFlow notebooks are not finalized. We will update this page with a zip file containing the two notebooks as soon as they are completed!**
 
 
 ### Submitting your work
